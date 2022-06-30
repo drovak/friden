@@ -103,6 +103,7 @@ wire [2:0] reg_cnt = {TFG1, TFF1, TFE1};
 wire [3:0] col_cnt = {TFL1, TFK1, TFJ1, TFH1};
 reg [2:0] reg_cnt_prev;
 reg [3:0] col_cnt_prev;
+reg [3:0] col_cnt_prev2;
 
 reg [3:0] dig_cnt;
 
@@ -119,34 +120,35 @@ always @(posedge clk_div_4) begin
 
     if (!TFD2 & TFD2_prev) begin
         col_cnt_prev <= col_cnt;
+        col_cnt_prev2 <= col_cnt_prev;
         reg_cnt_prev <= reg_cnt;
     end
 
     if (TFD2 & !TFD2_prev) begin
         dig_cnt <= 0;
         if (reg_cnt_prev == 3'o7) begin
-            reg_s[col_cnt_prev] <= dig_cnt;
-            reg_s_l[col_cnt_prev] <= dig_cnt;
+            reg_s[col_cnt_prev2] <= dig_cnt;
+            reg_s_l[col_cnt_prev2] <= dig_cnt;
         end
         if (reg_cnt_prev == 3'o0) begin
-            reg_0[col_cnt_prev] <= dig_cnt;
-            reg_0_l[col_cnt_prev] <= dig_cnt;
+            reg_0[col_cnt_prev2] <= dig_cnt;
+            reg_0_l[col_cnt_prev2] <= dig_cnt;
         end
         if (reg_cnt_prev == 3'o1) begin
-            reg_1[col_cnt_prev] <= dig_cnt;
-            reg_1_l[col_cnt_prev] <= dig_cnt;
+            reg_1[col_cnt_prev2] <= dig_cnt;
+            reg_1_l[col_cnt_prev2] <= dig_cnt;
         end
         if (reg_cnt_prev == 3'o2) begin
-            reg_2[col_cnt_prev] <= dig_cnt;
-            reg_2_l[col_cnt_prev] <= dig_cnt;
+            reg_2[col_cnt_prev2] <= dig_cnt;
+            reg_2_l[col_cnt_prev2] <= dig_cnt;
         end
         if (reg_cnt_prev == 3'o3) begin
-            reg_3[col_cnt_prev] <= dig_cnt;
-            reg_3_l[col_cnt_prev] <= dig_cnt;
+            reg_3[col_cnt_prev2] <= dig_cnt;
+            reg_3_l[col_cnt_prev2] <= dig_cnt;
         end
         if (reg_cnt_prev == 3'o6) begin
-            reg_4[col_cnt_prev] <= dig_cnt;
-            reg_4_l[col_cnt_prev] <= dig_cnt;
+            reg_4[col_cnt_prev2] <= dig_cnt;
+            reg_4_l[col_cnt_prev2] <= dig_cnt;
         end
     end
 
