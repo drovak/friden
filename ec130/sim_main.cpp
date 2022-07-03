@@ -343,7 +343,7 @@ int main(int argc, char** argv, char** env) {
             printw("\n");
 
         printw("sw_dp:     %d\n", top->sw_dp);
-        printw("kbd_cnt:   %d\n", top->top__DOT__kbd_cnt);
+        printw("kbd_ack:   %d\n", top->kbd_ack);
         printw("timing:    %04x\n", top->timing);
         printw("phase:     %d\n", top->phase);
         printw("a_cnt:     %x\n", top->a_cnt);
