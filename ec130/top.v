@@ -98,13 +98,8 @@ module top (
 /* verilator lint_off UNUSED */
 
 // debugging output
-//wire [3:0] bit_cnt = {TFD1, TFC1, TFB1, TFA1};
-wire [2:0] reg_cnt = {TFG1, TFF1, TFE1};
-wire [3:0] col_cnt = {TFL1, TFK1, TFJ1, TFH1};
-reg [2:0] reg_cnt_prev;
-reg [3:0] col_cnt_prev;
-reg [3:0] col_cnt_prev2;
-
+reg [2:0] reg_cnt;
+reg [3:0] col_cnt;
 reg [3:0] dig_cnt;
 
 reg TFD2_prev;
@@ -112,48 +107,47 @@ reg TFD2_prev;
 reg [12:0] timing_dbg;
 
 // decode the data on the delay line and such
+always @(posedge TFD1) begin
+    reg_cnt <= {TFG1, TFF1, TFE1};
+    col_cnt <= {TFL1, TFK1, TFJ1, TFH1};
+end
+
 always @(posedge clk_div_4) begin
     TFD2_prev <= TFD2;
 
     if (clk_div_8)
         timing_dbg <= {TFN1, TFM1, TFL1, TFK1, TFJ1, TFH1, TFG1, TFF1, TFE1, TFD1, TFC1, TFB1, TFA1};
 
-    if (!TFD2 & TFD2_prev) begin
-        col_cnt_prev <= col_cnt;
-        col_cnt_prev2 <= col_cnt_prev;
-        reg_cnt_prev <= reg_cnt;
-    end
+    if (TFA1 & TFB2 & TFC2 & TFD2)
+        dig_cnt <= 0;
+    else if (!XRDL4)
+        dig_cnt <= dig_cnt + 1;
 
     if (TFD2 & !TFD2_prev) begin
-        dig_cnt <= 0;
-        if (reg_cnt_prev == 3'o7) begin
-            reg_s[col_cnt_prev2] <= dig_cnt;
-            reg_s_l[col_cnt_prev2] <= dig_cnt;
+        if (reg_cnt == 3'o6) begin
+            reg_s[col_cnt] <= dig_cnt;
+            reg_s_l[col_cnt] <= dig_cnt;
         end
-        if (reg_cnt_prev == 3'o0) begin
-            reg_0[col_cnt_prev2] <= dig_cnt;
-            reg_0_l[col_cnt_prev2] <= dig_cnt;
+        if (reg_cnt == 3'o7) begin
+            reg_0[col_cnt] <= dig_cnt;
+            reg_0_l[col_cnt] <= dig_cnt;
         end
-        if (reg_cnt_prev == 3'o1) begin
-            reg_1[col_cnt_prev2] <= dig_cnt;
-            reg_1_l[col_cnt_prev2] <= dig_cnt;
+        if (reg_cnt == 3'o0) begin
+            reg_1[col_cnt] <= dig_cnt;
+            reg_1_l[col_cnt] <= dig_cnt;
         end
-        if (reg_cnt_prev == 3'o2) begin
-            reg_2[col_cnt_prev2] <= dig_cnt;
-            reg_2_l[col_cnt_prev2] <= dig_cnt;
+        if (reg_cnt == 3'o1) begin
+            reg_2[col_cnt] <= dig_cnt;
+            reg_2_l[col_cnt] <= dig_cnt;
         end
-        if (reg_cnt_prev == 3'o3) begin
-            reg_3[col_cnt_prev2] <= dig_cnt;
-            reg_3_l[col_cnt_prev2] <= dig_cnt;
+        if (reg_cnt == 3'o2) begin
+            reg_3[col_cnt] <= dig_cnt;
+            reg_3_l[col_cnt] <= dig_cnt;
         end
-        if (reg_cnt_prev == 3'o6) begin
-            reg_4[col_cnt_prev2] <= dig_cnt;
-            reg_4_l[col_cnt_prev2] <= dig_cnt;
+        if (reg_cnt == 3'o3) begin
+            reg_4[col_cnt] <= dig_cnt;
+            reg_4_l[col_cnt] <= dig_cnt;
         end
-    end
-
-    if (dl_in_prev == 2'b10) begin
-        dig_cnt <= dig_cnt + 1;
     end
 end
 
