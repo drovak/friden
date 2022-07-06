@@ -1,4 +1,4 @@
-// Friden EC-130 (4-counter) simulation
+// Friden EC-132 (4-counter) simulation
 // Kyle Owen - 3 July 2022
 
 parameter DELAY_LINE_LENGTH = 1800;
