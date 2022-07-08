@@ -12,6 +12,11 @@
 
 #define KEY_DELAY 50000UL
 
+uint32_t micros = 0;
+uint32_t sec = 0;
+uint32_t min = 0;
+uint32_t hr = 0;
+
 // prints a register in a human-readable way
 void print_reg(uint8_t * reg, int dp) {
     for (int i = 15; i >= 2; i--) {
@@ -302,6 +307,7 @@ int main(int argc, char** argv, char** env) {
         printw("home:      %x\n", top->ff_home);
         printw("shft_dwn:  %x\n", top->ff_shift_down);
 
+        mvprintw(6,30, "time:      %02d:%02d:%02d.%06d\n", hr, min, sec, micros);
         mvprintw(7,30, "clr_disp:  %x\n", top->ff_clr_disp);
         mvprintw(8,30, "sqrt:      %x\n", top->ff_sqrt);
         mvprintw(9,30, "chg_sign:  %x\n", top->ff_chg_sign);
@@ -335,6 +341,28 @@ int main(int argc, char** argv, char** env) {
             top->clk = clk;
             top->eval();
         }
+
+        if (top->time_pulse)
+            micros += 3;
+
+        if (micros >= 1000000)
+        {
+            micros -= 1000000;
+            sec++;
+        }
+
+        if (sec >= 60)
+        {
+            sec = 0;
+            min++;
+        }
+
+        if (min >= 60)
+        {
+            min = 0;
+            hr++;
+        }
+
     }
 
 #if VM_TRACE

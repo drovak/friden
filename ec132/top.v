@@ -47,6 +47,9 @@ module top (
     // feedback for key presses (for those that use the EKBD3 signal, anyways)
     output kbd_ack,
 
+    // 3 microsecond period output for timekeeping
+    output time_pulse,
+
     // phase counter output
     output reg [3:0] phase,
 
@@ -113,6 +116,8 @@ reg [3:0] dig_cnt;
 reg TFD2_prev;
 
 reg [13:0] timing_dbg;
+
+assign time_pulse = clk_div_2 & clk_div_4 & clk_div_8;
 
 // decode the data on the delay line and such
 always @(posedge TFD1) begin
