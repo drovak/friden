@@ -48,6 +48,8 @@ OPT_FAST = -Os -fstrict-aliasing
 # Special compile rule
 sim_main.o: sim_main.cpp $(VM_PREFIX).h
 
+display.o: display.c display.h
+
 ######################################################################
 ######################################################################
 # Automatically understand dependencies

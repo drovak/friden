@@ -4,37 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory>
-#include <verilated.h>
+#include <verilated_vcd_c.h>
 #include "Vtop.h"
 
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <GL/glut.h>
 
-// vertical positions
-#define POS_A 2.0
-#define POS_B 1.0
-#define POS_C 0.0
-float v_lut[] = {POS_C, POS_B, POS_A};
-
-// horizontal positions
-#define POS_D 1.0
-#define POS_E 0.0
-#define POS_F -0.2
-float h_lut[] = {POS_F, POS_E, POS_D};
-
-// scale factors
-#define V_SCALE 6.0
-#define H_SCALE 6.0
-#define SLANT_FACTOR 0.2
-
-// spacing
-#define H_SPACING 9.0
-#define V_SPACING 18.0
-
-// shifting
-#define SHIFT_1 (0.3 * H_SPACING)
-#define SHIFT_7 (-0.1 * H_SPACING)
+#include "display.h"
 
 #define KEY_DELAY 50000UL
 uint64_t t_event;
@@ -44,32 +19,9 @@ int quit = 0;
 uint64_t i = 0;
 Vtop *top;
 
-#undef VM_TRACE // trace doesn't work for this OpenGL version...yet
-
 #if VM_TRACE
 VerilatedVcdC* tfp;
 #endif
-
-void segment(float v_off, float h_off, int v_pos, int h_pos, int vseg, float len)
-{
-    if (len == 0.0) {
-        glBegin(GL_POINTS); // draw a decimal point
-        glVertex2f(h_off + h_lut[h_pos] * H_SCALE + SLANT_FACTOR * v_lut[v_pos] * V_SCALE, 
-                   v_off + v_lut[v_pos] * V_SCALE);
-    } else {
-        glBegin(GL_LINES);
-        glVertex2f(h_off + h_lut[h_pos] * H_SCALE + SLANT_FACTOR * v_lut[v_pos] * V_SCALE, 
-                   v_off + v_lut[v_pos] * V_SCALE);
-        if (vseg) // draw vertical segment
-            glVertex2f(h_off + h_lut[h_pos] * H_SCALE + SLANT_FACTOR * (v_lut[v_pos] - len) * V_SCALE, 
-                       v_off + (v_lut[v_pos] - len) * V_SCALE);
-        else // draw horizontal segment
-            glVertex2f(h_off + (h_lut[h_pos] - len) * H_SCALE + SLANT_FACTOR * v_lut[v_pos] * V_SCALE, 
-                       v_off + v_lut[v_pos] * V_SCALE);
-    }
-    glEnd();
-    glFlush();
-}
 
 void display(void)
 {
@@ -91,17 +43,11 @@ void display(void)
         top->eval();
     }
 
-    if (top->erase) {
-        glutSwapBuffers();
-        glClear(GL_COLOR_BUFFER_BIT);
-        glFlush();
-    }
-
-    if (top->seg_samp)
-        segment(top->v_staircase * V_SPACING, 
-                top->shift1 * SHIFT_1 + top->shift7 * SHIFT_7 + 
-                (13 - top->h_staircase) * H_SPACING, 
-                top->v_dot, top->h_dot, top->v_seg, top->seg_len / 48.0);
+    // do display stuff, like:
+    //  - draw segments
+    //  - swap buffer and erase screen
+    display_helper(top->erase, top->seg_samp, top->v_staircase, top->h_staircase, 
+                   top->v_dot, top->h_dot, top->v_seg, top->seg_len, top->shift1, top->shift7);
 
     if (valid_press) {
         valid_press = 0;
@@ -144,12 +90,10 @@ void keyboard_sf(int key, int x, int y)
 {
     switch (key) {
         case GLUT_KEY_UP:
-            valid_press = 0;
             if (top->sw_dp < 13)
                 top->sw_dp++;
             break;
         case GLUT_KEY_DOWN:
-            valid_press = 0;
             if (top->sw_dp > 0)
                 top->sw_dp--;
             break;
@@ -160,6 +104,10 @@ void keyboard_sf(int key, int x, int y)
 
 void keyboard(unsigned char key, int x, int y)
 {
+    // lock out everything but clear all, overflow lock, and quit
+    if (top->kbd_lock && ((key != 'c') && (key != 'o') && (key != 'q')))
+        return;
+
     valid_press = 1;
     switch (key) {
         case '0':
@@ -241,21 +189,6 @@ void keyboard(unsigned char key, int x, int y)
             valid_press = 0;
             break;
     }
-}
-
-void init(void) 
-{
-    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize (600, 300);
-    glutInitWindowPosition(500, 300);
-    glutCreateWindow("Friden EC-130");
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glColor3f(0.0, 1.0, 0.0);
-    glPointSize(2.0);
-    //glEnable(GL_POINT_SMOOTH);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-15, 145, -8, 72);
 }
 
 int main(int argc, char** argv, char** env) {
